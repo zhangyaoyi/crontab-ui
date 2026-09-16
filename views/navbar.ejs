@@ -1,28 +1,39 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="app-navbar navbar navbar-expand">
   <div class="container-fluid">
-    <a class="navbar-brand" href="<%= JSON.parse(routes).root %>">Crontab UI</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+    <a class="app-brand" href="<%= JSON.parse(routes).root %>">
+      <span class="brand-mark"><i class="bi bi-calendar2-check"></i></span>
+      <span>
+        <span class="d-block lh-1">Crontab UI</span>
+        <span class="brand-version">Scheduler</span>
+      </span>
+    </a>
 
-    <div class="collapse navbar-collapse" id="navbarContent">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Backups</a>
-          <ul class="dropdown-menu">
-            <% if (backups.length == 0){ %>
-              <li><a class="dropdown-item" href="#">None</a></li>
-            <% } else { %>
-              <% backups.forEach(function(file){ %>
-                <li><a class="dropdown-item" href="<%= JSON.parse(routes).restore %>?db=<%= file %>"><%= file %></a></li>
-              <% }) %>
-            <% } %>
-          </ul>
-        </li>
-      </ul>
-      <ul class="navbar-nav">
-        <li class="nav-item"><a class="nav-link" href="https://github.com/alseambusher/crontab-ui">Fork me on Github</a></li>
-      </ul>
+    <div class="navbar-actions">
+      <div class="dropdown">
+        <button class="nav-control dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-clock-history"></i>
+          <span class="d-none d-sm-inline">Backups</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <% if (backups.length == 0) { %>
+            <li><span class="dropdown-item-text text-body-secondary small">No backups yet</span></li>
+          <% } else { %>
+            <% backups.forEach(function(file) { %>
+              <li>
+                <a class="dropdown-item" href="<%= JSON.parse(routes).restore %>?db=<%= encodeURIComponent(file) %>">
+                  <i class="bi bi-file-earmark-zip me-2"></i><%= file %>
+                </a>
+              </li>
+            <% }) %>
+          <% } %>
+        </ul>
+      </div>
+      <button class="nav-control" type="button" id="theme-toggle" aria-label="Toggle color theme" title="Toggle color theme">
+        <i class="bi bi-moon-stars" id="theme-icon"></i>
+      </button>
+      <a class="nav-control" href="https://github.com/alseambusher/crontab-ui" target="_blank" rel="noopener noreferrer" aria-label="GitHub" title="View on GitHub">
+        <i class="bi bi-github"></i>
+      </a>
     </div>
   </div>
 </nav>

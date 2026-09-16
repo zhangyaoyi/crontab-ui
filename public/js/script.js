@@ -6,6 +6,27 @@ function getModal(id) {
   return bootstrap.Modal.getOrCreateInstance(document.getElementById(id));
 }
 
+function initThemeToggle() {
+  var toggle = document.getElementById('theme-toggle');
+  var icon = document.getElementById('theme-icon');
+  if (!toggle || !icon) return;
+
+  function renderThemeIcon() {
+    var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    icon.className = isDark ? 'bi bi-sun' : 'bi bi-moon-stars';
+    toggle.title = isDark ? 'Use light theme' : 'Use dark theme';
+  }
+
+  renderThemeIcon();
+  toggle.addEventListener('click', function() {
+    var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    var nextTheme = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-bs-theme', nextTheme);
+    localStorage.setItem('crontab-ui-theme', nextTheme);
+    renderThemeIcon();
+  });
+}
+
 function infoMessageBox(message, title) {
   document.getElementById('info-body').innerHTML = message;
   document.getElementById('info-title').innerHTML = title;
@@ -47,6 +68,28 @@ function messageBox(body, title, ok_text, close_text, callback) {
 
 var schedule = '';
 var job_command = '';
+
+function clearQuickSchedule() {
+  document.querySelectorAll('.quick-schedule').forEach(function(button) {
+    button.classList.remove('active');
+  });
+}
+
+function syncQuickSchedule() {
+  clearQuickSchedule();
+  document.querySelectorAll('.quick-schedule').forEach(function(button) {
+    if (button.getAttribute('onclick').indexOf("'" + schedule + "'") !== -1) {
+      button.classList.add('active');
+    }
+  });
+}
+
+function selectQuickSchedule(button, value) {
+  schedule = value;
+  clearQuickSchedule();
+  button.classList.add('active');
+  job_string();
+}
 
 function deleteJob(_id) {
   messageBox('<p> Do you want to delete this Job? </p>', 'Confirm delete', null, null, function() {
@@ -125,8 +168,8 @@ function editJob(_id) {
     }
     schedule = job.schedule;
     job_command = job.command;
-    if (job.logging && job.logging != 'false')
-      $('#job-logging').prop('checked', true);
+    $('#job-logging').prop('checked', Boolean(job.logging && job.logging != 'false'));
+    syncQuickSchedule();
     job_string();
   }
 
@@ -159,6 +202,7 @@ function newJob() {
   $('#job-command').val('');
   $('#job-mailing').attr('data-json', '{}');
   $('#job-logging').prop('checked', false);
+  clearQuickSchedule();
   job_string();
 
   var saveBtn = document.getElementById('job-save');

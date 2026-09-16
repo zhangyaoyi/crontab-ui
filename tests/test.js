@@ -28,6 +28,16 @@ describe('Crontab UI', () => {
       expect(res.status).toBe(200);
       expect(res.text).toContain('Crontab UI');
       expect(res.text).toContain('Cronjobs');
+      expect(res.text).toContain('css/modern.css');
+      expect(res.text).toContain('id="theme-toggle"');
+      expect(res.text).toContain('Scheduled jobs');
+    });
+
+    it('should serve the modern theme stylesheet', async () => {
+      const res = await request(app).get('/css/modern.css');
+      expect(res.status).toBe(200);
+      expect(res.headers['content-type']).toContain('text/css');
+      expect(res.text).toContain('--primary: #4f46e5');
     });
   });
 

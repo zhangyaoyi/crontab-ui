@@ -1,111 +1,127 @@
-<!-- Job -->
-<div class="modal fade" id="job" tabindex="-1">
-  <div class="modal-dialog">
+<!-- Job editor -->
+<div class="modal fade" id="job" tabindex="-1" aria-labelledby="job-title" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="job-title">Job</h5>
+        <div>
+          <div class="eyebrow mb-1">Schedule setup</div>
+          <h2 class="modal-title" id="job-title">Job</h2>
+        </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body" id="job-body">
-	<label class="form-label">Name (Optional)</label>
-	<input type='text' class='form-control' id='job-name'/><br />
-	<label class="form-label">Command</label>
-	<textarea class='form-control' id='job-command' rows='3' oninput="job_command = $(this).val(); job_string();"></textarea><br />
-	<label class="form-label">Quick Schedule</label><br />
-	<div class="d-flex flex-wrap gap-2 mb-3">
-		<a class="btn btn-primary btn-sm" onclick="schedule = '* * * * *'; job_string();">Every Minute</a>
-		<a class="btn btn-primary btn-sm" onclick="schedule = '*/5 * * * *'; job_string();">Every 5 Min</a>
-		<a class="btn btn-primary btn-sm" onclick="schedule = '@hourly'; job_string();">Hourly</a>
-		<a class="btn btn-primary btn-sm" onclick="schedule = '@daily'; job_string();">Daily</a>
-		<a class="btn btn-primary btn-sm" onclick="schedule = '@weekly'; job_string();">Weekly</a>
-		<a class="btn btn-primary btn-sm" onclick="schedule = '@monthly'; job_string();">Monthly</a>
-		<a class="btn btn-primary btn-sm" onclick="schedule = '@yearly'; job_string();">Yearly</a>
-		<a class="btn btn-primary btn-sm" onclick="schedule = '@reboot'; job_string();">Startup</a>
-	</div>
+        <div class="field-group">
+          <label class="form-label" for="job-name">Name <span class="fw-normal text-body-secondary">(optional)</span></label>
+          <input type="text" class="form-control" id="job-name" placeholder="e.g. Nightly database backup">
+        </div>
 
-	<div class="row">
-		<div class="col-md-2">Minute</div>
-		<div class="col-md-2">Hour</div>
-		<div class="col-md-2">Day</div>
-		<div class="col-md-2">Month</div>
-		<div class="col-md-2">Week</div>
-	</div>
-	<div class="row">
-		<div class="col-md-2"><input type="text" class="form-control" id="job-minute" value="*" onclick="this.select();"/></div>
-		<div class="col-md-2"><input type="text" class="form-control" id="job-hour" value="*" onclick="this.select();"/></div>
-		<div class="col-md-2"><input type="text" class="form-control" id="job-day" value="*" onclick="this.select();"/></div>
-		<div class="col-md-2"><input type="text" class="form-control" id="job-month" value="*" onclick="this.select();"/></div>
-		<div class="col-md-2"><input type="text" class="form-control" id="job-week" value="*" onclick="this.select();"/></div>
-		<div class="col-md-2"><a class="btn btn-primary btn-sm" onclick="set_schedule();">Set</a></div>
-	</div>
+        <div class="field-group">
+          <label class="form-label" for="job-command">Command</label>
+          <textarea class="form-control command-input" id='job-command' rows="4" placeholder="/path/to/script.sh" oninput="job_command = $(this).val(); job_string();"></textarea>
+          <div class="field-hint">Use a full executable path when the command depends on a specific runtime.</div>
+        </div>
 
-	<br />
-	<br />
-	<label class="form-label">Job</label>
-	<input type='text' class='form-control' id='job-string' disabled='disabled'/><br />
-	<div class="form-check">
-		<input type="checkbox" class="form-check-input" id="job-logging"/>
-		<label class="form-check-label" for="job-logging">Enable error logging.</label>
-	</div>
-	<br/>
-	<a class="btn btn-primary btn-sm" data-json="{}" onclick="setMailConfig(this);" id="job-mailing">Mailing</a>
-	<a class="btn btn-primary btn-sm" data-json="{}" onclick="setHookConfig(this);">Hooks</a>
+        <div class="field-group">
+          <label class="form-label">Quick schedule</label>
+          <div class="quick-schedules">
+            <button class="quick-schedule" type="button" onclick="selectQuickSchedule(this, '* * * * *')">Every minute</button>
+            <button class="quick-schedule" type="button" onclick="selectQuickSchedule(this, '*/5 * * * *')">Every 5 min</button>
+            <button class="quick-schedule" type="button" onclick="selectQuickSchedule(this, '@hourly')">Hourly</button>
+            <button class="quick-schedule" type="button" onclick="selectQuickSchedule(this, '@daily')">Daily</button>
+            <button class="quick-schedule" type="button" onclick="selectQuickSchedule(this, '@weekly')">Weekly</button>
+            <button class="quick-schedule" type="button" onclick="selectQuickSchedule(this, '@monthly')">Monthly</button>
+            <button class="quick-schedule" type="button" onclick="selectQuickSchedule(this, '@yearly')">Yearly</button>
+            <button class="quick-schedule" type="button" onclick="selectQuickSchedule(this, '@reboot')">At startup</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="form-label">Custom schedule</label>
+          <div class="schedule-builder">
+            <div><label for="job-minute">Minute</label><input type="text" class="form-control" id="job-minute" value="*" onclick="this.select();"></div>
+            <div><label for="job-hour">Hour</label><input type="text" class="form-control" id="job-hour" value="*" onclick="this.select();"></div>
+            <div><label for="job-day">Day</label><input type="text" class="form-control" id="job-day" value="*" onclick="this.select();"></div>
+            <div><label for="job-month">Month</label><input type="text" class="form-control" id="job-month" value="*" onclick="this.select();"></div>
+            <div><label for="job-week">Weekday</label><input type="text" class="form-control" id="job-week" value="*" onclick="this.select();"></div>
+            <button class="btn btn-surface" type="button" onclick="set_schedule(); clearQuickSchedule();">Apply</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="form-label" for="job-string">Crontab preview</label>
+          <input type="text" class="form-control command-preview" id="job-string" disabled>
+        </div>
+
+        <div class="field-group advanced-options">
+          <div class="form-check form-switch mb-0">
+            <input type="checkbox" class="form-check-input" role="switch" id="job-logging">
+            <label class="form-check-label" for="job-logging">Capture output and errors</label>
+          </div>
+          <div class="advanced-actions">
+            <button class="btn btn-surface btn-sm" type="button" data-json="{}" onclick="setMailConfig(this);" id="job-mailing"><i class="bi bi-envelope me-1"></i> Mailing</button>
+            <button class="btn btn-surface btn-sm" type="button" data-json="{}" onclick="setHookConfig(this);"><i class="bi bi-link-45deg me-1"></i> Hooks</button>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" id="job-save">Save</button>
+        <button type="button" class="btn btn-surface" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="job-save"><i class="bi bi-check2 me-1"></i> Save job</button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="modal fade" id="popup" tabindex="-1">
-  <div class="modal-dialog">
+<!-- Confirmation dialog -->
+<div class="modal fade" id="popup" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modal-title">Message</h5>
+        <h2 class="modal-title" id="modal-title">Confirm action</h2>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body" id="modal-body">
-      </div>
+      <div class="modal-body" id="modal-body"></div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="modal-close-button">Close</button>
-        <button type="button" class="btn btn-primary" id="modal-button">Ok</button>
+        <button type="button" class="btn btn-surface" data-bs-dismiss="modal" id="modal-close-button">Cancel</button>
+        <button type="button" class="btn btn-primary" id="modal-button">Continue</button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="modal fade" id="info-popup" tabindex="-1">
-  <div class="modal-dialog">
+<!-- Information dialog -->
+<div class="modal fade" id="info-popup" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="info-title">Message</h5>
+        <h2 class="modal-title" id="info-title">Message</h2>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body" id="info-body">
-      </div>
+      <div class="modal-body" id="info-body"></div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="info-button">Ok</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="info-button">Done</button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="modal fade" id="preview-crontab-modal" tabindex="-1">
-  <div class="modal-dialog modal-xl">
+<!-- Crontab preview -->
+<div class="modal fade" id="preview-crontab-modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-code-square"></i> Crontab Preview</h5>
+        <div>
+          <div class="eyebrow mb-1">Deployment output</div>
+          <h2 class="modal-title"><i class="bi bi-code-square me-1"></i> Crontab preview</h2>
+        </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <div class="alert alert-warning mb-3"><i class="bi bi-exclamation-triangle"></i> This is a preview of what will be deployed. It may differ from the currently active crontab if you have unsaved changes.</div>
-        <pre id="preview-crontab-content" class="bg-dark text-light p-3 rounded" style="min-height:200px;white-space:pre-wrap;word-break:break-all;font-size:0.875rem;"></pre>
+        <div class="notice mb-3"><i class="bi bi-exclamation-triangle"></i><span>This is what will be deployed. Pending changes may differ from the currently active crontab.</span></div>
+        <pre id="preview-crontab-content" class="preview-code"></pre>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" onclick="copyCrontab()"><i class="bi bi-clipboard"></i> Copy</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-surface" onclick="copyCrontab()"><i class="bi bi-clipboard me-1"></i> Copy</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
       </div>
     </div>
   </div>
