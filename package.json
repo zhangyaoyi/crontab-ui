@@ -16,19 +16,20 @@
     "cronstrue": "^3.14.0",
     "dayjs": "^1.11.20",
     "ejs": "^3.1.10",
-    "express": "^4.21.2",
+    "express": "^4.22.3",
     "express-basic-auth": "^1.2.1",
-    "express-rate-limit": "^8.3.2",
+    "express-rate-limit": "^8.7.0",
     "helmet": "^8.1.0",
     "mime-types": "^3.0.2",
-    "nodemailer": "^8.0.5"
+    "nodemailer": "^10.0.10"
   },
   "devDependencies": {
     "eslint": "^9.0.0",
     "globals": "^16.0.0",
     "prettier": "^3.5.0",
     "supertest": "^7.1.0",
-    "vitest": "^3.1.0"
+    "vite": "^6.4.3",
+    "vitest": "^4.1.11"
   },
   "engines": {
     "node": ">=20.0.0"
