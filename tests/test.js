@@ -47,7 +47,7 @@ describe('Crontab UI', () => {
         .post('/save')
         .send({
           _id: -1,
-          name: 'test-job',
+          name: 'Test jobs · test-job',
           command: 'echo hello',
           schedule: '* * * * *',
           logging: 'false',
@@ -61,6 +61,8 @@ describe('Crontab UI', () => {
       expect(res.status).toBe(200);
       expect(res.text).toContain('test-job');
       expect(res.text).toContain('echo hello');
+      expect(res.text).toContain('data-category="Test jobs"');
+      expect(res.text).toContain('class="table job-table"');
     });
   });
 

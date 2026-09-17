@@ -7,7 +7,6 @@
 <title>Cronjobs · Crontab UI</title>
 <link href="css/bootstrap.min.css" rel="stylesheet">
 <link href="css/bootstrap-icons.min.css" rel="stylesheet">
-<link href="css/dataTables.bootstrap5.min.css" rel="stylesheet">
 <link href="css/modern.css" rel="stylesheet">
 <script>
   (function() {
@@ -18,8 +17,6 @@
 </script>
 <script src="js/jquery.min.js"></script>
 <script src="js/bootstrap.bundle.min.js"></script>
-<script src="js/dataTables.min.js"></script>
-<script src="js/dataTables.bootstrap5.min.js"></script>
 <script src="script.js"></script>
 <script src="mailconfig.js"></script>
 <script type="text/javascript">
@@ -39,6 +36,25 @@
 <% const jobs = JSON.parse(crontabs); %>
 <% const activeJobs = jobs.filter(function(job) { return !job.stopped; }).length; %>
 <% const pausedJobs = jobs.length - activeJobs; %>
+<%
+	const categorySeparator = ' · ';
+	const jobGroups = jobs.reduce(function(groups, job) {
+		const category = job.name && job.name.includes(categorySeparator)
+			? job.name.split(categorySeparator)[0].trim()
+			: 'Other jobs';
+		if (!groups[category]) groups[category] = [];
+		groups[category].push(job);
+		return groups;
+	}, {});
+	const categories = Object.keys(jobGroups).sort(function(a, b) {
+		return a.localeCompare(b, 'zh-CN');
+	});
+	categories.forEach(function(category) {
+		jobGroups[category].sort(function(a, b) {
+			return String(a.name || '').localeCompare(String(b.name || ''), 'zh-CN');
+		});
+	});
+%>
 <%- include('navbar.ejs') -%>
 
 <main class="page-shell">
@@ -114,87 +130,114 @@
 		<input type="file" id="import_file" name="import_file" onchange="$('#import_form').submit()">
 	</form>
 
-	<section class="panel table-panel">
-		<div class="table-panel-header">
-			<div><h2>Scheduled jobs</h2><p>Search, inspect and manage every task.</p></div>
+	<section class="job-browser" aria-labelledby="scheduled-jobs-heading">
+		<div class="job-browser-header">
+			<div>
+				<h2 id="scheduled-jobs-heading">Scheduled jobs</h2>
+				<p><span id="visible-job-count"><%= jobs.length %></span> jobs across <%= categories.length %> categories</p>
+			</div>
+			<label class="job-search">
+				<i class="bi bi-search"></i>
+				<span class="visually-hidden">Search jobs</span>
+				<input type="search" id="job-search" placeholder="Search jobs…" oninput="filterJobTables(this.value)" autocomplete="off">
+			</label>
 		</div>
-		<div class="table-responsive">
-			<table class="table" id="main_table">
-				<thead>
-					<tr>
-						<th>Status</th>
-						<th>Name</th>
-						<th>Command</th>
-						<th>Schedule</th>
-						<th>Modified</th>
-						<th class="text-end">Actions</th>
-					</tr>
-				</thead>
-				<tbody>
-				<% jobs.forEach(function(crontab) { %>
-					<tr>
-						<td>
-							<% if (!crontab.stopped) { %><span class="status-badge status-active">Active</span><% } else { %><span class="status-badge status-paused">Paused</span><% } %>
-						</td>
-						<td>
-							<span class="job-name"><%= crontab.name || 'Untitled job' %></span>
-							<span class="job-id" title="<%= crontab._id %>"><%= crontab._id %></span>
-							<% if (crontab.saved) { %>
-								<span class="deploy-state saved"><i class="bi bi-check2-circle"></i> Deployed</span>
-							<% } else { %>
-								<span class="deploy-state unsaved"><i class="bi bi-exclamation-circle"></i> Pending deploy</span>
-							<% } %>
-						</td>
-						<td><code class="command-code" title="<%= crontab.command %>"><%= crontab.command %></code></td>
-						<td>
-							<span class="schedule-code" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Next: <%= crontab.next %>"><%= crontab.schedule %></span>
-							<span class="schedule-human"><%= crontab.human %></span>
-						</td>
-						<td><span class="modified-date" title="<%= crontab.timestamp %>"><%= dayjs(new Date(crontab.timestamp)).fromNow() %></span></td>
-						<td>
-							<div class="action-list">
-							<% if (!crontab.stopped) { %>
-								<% if (crontab.logging && crontab.logging != 'false') { %>
-									<a class="icon-button danger" data-bs-toggle="tooltip" title="Error log" href="<%= JSON.parse(routes).logger + '?id=' + crontab._id %>" target="_blank"><i class="bi bi-exclamation-square"></i></a>
-									<a class="icon-button" data-bs-toggle="tooltip" title="Output log" href="<%= JSON.parse(routes).stdout + '?id=' + crontab._id %>" target="_blank"><i class="bi bi-terminal"></i></a>
-								<% } %>
-								<button class="icon-button primary" type="button" data-bs-toggle="tooltip" title="Run now" onclick="runJob('<%= crontab._id %>')"><i class="bi bi-play-fill"></i></button>
-								<button class="icon-button" type="button" data-bs-toggle="tooltip" title="Edit" onclick="editJob('<%= crontab._id %>')"><i class="bi bi-pencil"></i></button>
-								<button class="icon-button" type="button" data-bs-toggle="tooltip" title="Pause" onclick="stopJob('<%= crontab._id %>')"><i class="bi bi-pause-fill"></i></button>
-							<% } else { %>
-								<button class="icon-button primary" type="button" data-bs-toggle="tooltip" title="Enable" onclick="startJob('<%= crontab._id %>')"><i class="bi bi-play-circle"></i></button>
-							<% } %>
-								<button class="icon-button" type="button" data-bs-toggle="tooltip" title="Duplicate" onclick="duplicateJob('<%= crontab._id %>')"><i class="bi bi-copy"></i></button>
-								<button class="icon-button danger" type="button" data-bs-toggle="tooltip" title="Delete" onclick="deleteJob('<%= crontab._id %>')"><i class="bi bi-trash3"></i></button>
+
+		<% if (jobs.length === 0) { %>
+			<div class="panel empty-state-panel">
+				<div class="empty-state"><i class="bi bi-calendar2-plus"></i>No scheduled jobs yet</div>
+			</div>
+		<% } else { %>
+			<div class="category-stack">
+			<% categories.forEach(function(category) { %>
+				<section class="panel table-panel category-panel" data-category="<%= category %>">
+					<div class="category-header">
+						<div class="category-title">
+							<span class="category-icon"><i class="bi bi-folder2"></i></span>
+							<div>
+								<h3><%= category %></h3>
+								<p><span class="category-visible-count"><%= jobGroups[category].length %></span> jobs</p>
 							</div>
-						</td>
-					</tr>
-				<% }); %>
-				</tbody>
-			</table>
-		</div>
+						</div>
+						<span class="category-count"><%= jobGroups[category].length %></span>
+					</div>
+					<div class="table-responsive">
+						<table class="table job-table">
+							<thead>
+								<tr>
+									<th>Status</th>
+									<th>Name</th>
+									<th>Command</th>
+									<th>Schedule</th>
+									<th>Modified</th>
+									<th class="text-end">Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+							<% jobGroups[category].forEach(function(crontab) { %>
+								<%
+									const displayName = crontab.name && crontab.name.includes(categorySeparator)
+										? crontab.name.split(categorySeparator).slice(1).join(categorySeparator).trim()
+										: (crontab.name || 'Untitled job');
+									const searchText = [
+										category,
+										crontab.name,
+										crontab.command,
+										crontab.schedule,
+										crontab.human
+									].filter(Boolean).join(' ').toLocaleLowerCase('zh-CN');
+								%>
+								<tr class="job-row" data-search="<%= searchText %>">
+									<td>
+										<% if (!crontab.stopped) { %><span class="status-badge status-active">Active</span><% } else { %><span class="status-badge status-paused">Paused</span><% } %>
+									</td>
+									<td>
+										<span class="job-name"><%= displayName %></span>
+										<span class="job-id" title="<%= crontab._id %>"><%= crontab._id %></span>
+										<% if (crontab.saved) { %>
+											<span class="deploy-state saved"><i class="bi bi-check2-circle"></i> Deployed</span>
+										<% } else { %>
+											<span class="deploy-state unsaved"><i class="bi bi-exclamation-circle"></i> Pending deploy</span>
+										<% } %>
+									</td>
+									<td><code class="command-code" title="<%= crontab.command %>"><%= crontab.command %></code></td>
+									<td>
+										<span class="schedule-code" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Next: <%= crontab.next %>"><%= crontab.schedule %></span>
+										<span class="schedule-human"><%= crontab.human %></span>
+									</td>
+									<td><span class="modified-date" title="<%= crontab.timestamp %>"><%= dayjs(new Date(crontab.timestamp)).fromNow() %></span></td>
+									<td>
+										<div class="action-list">
+										<% if (!crontab.stopped) { %>
+											<% if (crontab.logging && crontab.logging != 'false') { %>
+												<a class="icon-button danger" data-bs-toggle="tooltip" title="Error log" href="<%= JSON.parse(routes).logger + '?id=' + crontab._id %>" target="_blank"><i class="bi bi-exclamation-square"></i></a>
+												<a class="icon-button" data-bs-toggle="tooltip" title="Output log" href="<%= JSON.parse(routes).stdout + '?id=' + crontab._id %>" target="_blank"><i class="bi bi-terminal"></i></a>
+											<% } %>
+											<button class="icon-button primary" type="button" data-bs-toggle="tooltip" title="Run now" onclick="runJob('<%= crontab._id %>')"><i class="bi bi-play-fill"></i></button>
+											<button class="icon-button" type="button" data-bs-toggle="tooltip" title="Edit" onclick="editJob('<%= crontab._id %>')"><i class="bi bi-pencil"></i></button>
+											<button class="icon-button" type="button" data-bs-toggle="tooltip" title="Pause" onclick="stopJob('<%= crontab._id %>')"><i class="bi bi-pause-fill"></i></button>
+										<% } else { %>
+											<button class="icon-button primary" type="button" data-bs-toggle="tooltip" title="Enable" onclick="startJob('<%= crontab._id %>')"><i class="bi bi-play-circle"></i></button>
+										<% } %>
+											<button class="icon-button" type="button" data-bs-toggle="tooltip" title="Duplicate" onclick="duplicateJob('<%= crontab._id %>')"><i class="bi bi-copy"></i></button>
+											<button class="icon-button danger" type="button" data-bs-toggle="tooltip" title="Delete" onclick="deleteJob('<%= crontab._id %>')"><i class="bi bi-trash3"></i></button>
+										</div>
+									</td>
+								</tr>
+							<% }); %>
+							</tbody>
+						</table>
+					</div>
+				</section>
+			<% }); %>
+			</div>
+			<div class="panel empty-state-panel" id="no-search-results" hidden>
+				<div class="empty-state"><i class="bi bi-search"></i>No jobs match your search</div>
+			</div>
+		<% } %>
 	</section>
 </main>
 
 <%- include('popup.ejs') -%>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-	$('#main_table').DataTable({
-		order: [[1, 'asc']],
-		columns: [null, null, null, null, { orderable: false }, { orderable: false }],
-		pageLength: 25,
-		stateSave: true,
-		stateDuration: 0,
-		language: {
-			search: 'Search',
-			searchPlaceholder: 'Name, command or schedule…',
-			lengthMenu: 'Show _MENU_',
-			info: '_START_–_END_ of _TOTAL_ jobs',
-			infoEmpty: 'No jobs',
-			emptyTable: '<div class="empty-state"><i class="bi bi-calendar2-plus"></i>No scheduled jobs yet</div>'
-		}
-	});
-});
-</script>
 </body>
 </html>

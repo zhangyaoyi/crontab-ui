@@ -27,6 +27,31 @@ function initThemeToggle() {
   });
 }
 
+function filterJobTables(value) {
+  var query = String(value || '').trim().toLocaleLowerCase();
+  var visibleTotal = 0;
+
+  document.querySelectorAll('.category-panel').forEach(function(panel) {
+    var visibleInCategory = 0;
+    panel.querySelectorAll('.job-row').forEach(function(row) {
+      var matches = !query || row.dataset.search.includes(query);
+      row.hidden = !matches;
+      if (matches) visibleInCategory += 1;
+    });
+
+    panel.hidden = visibleInCategory === 0;
+    var count = panel.querySelector('.category-visible-count');
+    if (count) count.textContent = visibleInCategory;
+    visibleTotal += visibleInCategory;
+  });
+
+  var total = document.getElementById('visible-job-count');
+  if (total) total.textContent = visibleTotal;
+
+  var empty = document.getElementById('no-search-results');
+  if (empty) empty.hidden = visibleTotal !== 0;
+}
+
 function infoMessageBox(message, title) {
   document.getElementById('info-body').innerHTML = message;
   document.getElementById('info-title').innerHTML = title;
