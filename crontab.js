@@ -69,10 +69,16 @@ function makeCommand(tab) {
   }
 
   if (tab.mailing && JSON.stringify(tab.mailing) !== '{}') {
-    result += `; /usr/local/bin/node ${__dirname}/bin/crontab-ui-mailer.js ${tab._id} ${stdout} ${stderr}`;
+    const mailer = path.join(__dirname, 'bin', 'crontab-ui-mailer.js');
+    result += `; "${process.execPath}" "${mailer}" "${tab._id}" "${stdout}" "${stderr}"`;
   }
 
   return result;
+}
+
+function makeRunnerCommand(tab) {
+  const runner = path.join(__dirname, 'bin', 'crontab-ui-runner.js');
+  return `"${process.execPath}" "${runner}" "${tab._id}"`;
 }
 
 function addEnvVars(envVars, command) {
@@ -164,7 +170,7 @@ exports.set_crontab = (envVars, callback) => {
     }
     for (const tab of tabs) {
       if (!tab.stopped) {
-        crontabString += `${tab.schedule} ${makeCommand(tab)}\n`;
+        crontabString += `${tab.schedule} ${makeRunnerCommand(tab)}\n`;
       }
     }
 
@@ -274,7 +280,7 @@ exports.preview_crontab = (envVars, callback) => {
     }
     for (const tab of tabs) {
       if (!tab.stopped) {
-        crontabString += `${tab.schedule} ${makeCommand(tab)}\n`;
+        crontabString += `${tab.schedule} ${makeRunnerCommand(tab)}\n`;
       }
     }
     callback(crontabString);

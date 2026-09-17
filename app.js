@@ -84,6 +84,7 @@ app.get(routes.root, (req, res) => {
       crontabs: JSON.stringify(docs),
       backups: crontab.get_backup_names(),
       env: crontab.get_env(),
+      serverMailConfigured: Boolean(process.env.CRONTAB_UI_MAIL_CONFIG),
       dayjs,
     });
   });

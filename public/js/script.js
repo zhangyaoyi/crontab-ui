@@ -1,5 +1,7 @@
 'use strict';
 
+/* global serverMailConfigured */
+
 /*********** MessageBox ****************/
 
 function getModal(id) {
@@ -304,6 +306,26 @@ function setMailConfig(a) {
   var data = JSON.parse(a.getAttribute('data-json'));
   var container = document.createElement('div');
 
+  if (typeof serverMailConfigured !== 'undefined' && serverMailConfigured) {
+    var managedWrapper = document.createElement('div');
+    managedWrapper.className = 'form-check form-switch mb-3';
+
+    var managedInput = document.createElement('input');
+    managedInput.type = 'checkbox';
+    managedInput.className = 'form-check-input';
+    managedInput.id = 'serverManagedMailInput';
+    managedInput.checked = data.serverManaged === true;
+
+    var managedLabel = document.createElement('label');
+    managedLabel.className = 'form-check-label';
+    managedLabel.setAttribute('for', managedInput.id);
+    managedLabel.innerHTML = '<strong>Use server-managed email</strong><br><small class="text-body-secondary">Credentials stay on the server and are not stored with this job.</small>';
+
+    managedWrapper.appendChild(managedInput);
+    managedWrapper.appendChild(managedLabel);
+    container.appendChild(managedWrapper);
+  }
+
   var message = "<p>This is based on nodemailer. Refer <a href='http://lifepluslinux.blogspot.com/2017/03/introducing-mailing-in-crontab-ui.html'>this</a> for more details.</p>";
   container.innerHTML += message;
 
@@ -357,6 +379,12 @@ function setMailConfig(a) {
   container.appendChild(buttonClear);
 
   messageBox(container, 'Mailing', null, null, function() {
+    var managedInput = document.getElementById('serverManagedMailInput');
+    if (managedInput && managedInput.checked) {
+      a.setAttribute('data-json', JSON.stringify({serverManaged: true}));
+      return;
+    }
+
     var transporterStr = document.getElementById('transporterInput').value;
     var mailOptions;
     try {

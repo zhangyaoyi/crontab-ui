@@ -147,13 +147,14 @@ describe('Crontab UI', () => {
       const res = await request(app).get('/preview_crontab');
       expect(res.status).toBe(200);
       expect(res.headers['content-type']).toContain('text/plain');
-      expect(res.text).toContain('echo hello');
+      expect(res.text).toContain('bin/crontab-ui-runner.js');
     });
 
-    it('should include the make_command wrapper (tee pipeline)', async () => {
+    it('should generate short runner commands below the crontab line limit', async () => {
       const res = await request(app).get('/preview_crontab');
-      expect(res.text).toContain('tee');
-      expect(res.text).toContain('stderr');
+      const jobLines = res.text.trim().split('\n').filter((line) => line.includes('crontab-ui-runner.js'));
+      expect(jobLines.length).toBeGreaterThan(0);
+      expect(jobLines.every((line) => line.length < 1000)).toBe(true);
     });
 
     it('should only include active (non-stopped) jobs', async () => {
@@ -164,13 +165,14 @@ describe('Crontab UI', () => {
       await request(app).post('/stop').send({ _id: match[1] });
 
       const res = await request(app).get('/preview_crontab');
-      const lines = res.text.trim().split('\n').filter((l) => l.includes('echo hello'));
+      const lines = res.text.trim().split('\n').filter((line) => line.includes('crontab-ui-runner.js'));
       const activePage = await request(app).get('/');
       const activeCount = (activePage.text.match(/stopJob\('/g) || []).length;
       expect(lines.length).toBe(activeCount);
 
       await request(app).post('/start').send({ _id: match[1] });
     });
+
   });
 
   describe('Input validation', () => {
