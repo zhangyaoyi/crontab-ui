@@ -29,6 +29,7 @@ describe('Crontab UI', () => {
       expect(res.text).toContain('Crontab UI');
       expect(res.text).toContain('Cronjobs');
       expect(res.text).toContain('css/modern.css');
+      expect(res.text).toContain('href="favicon.svg"');
       expect(res.text).toContain('id="theme-toggle"');
       expect(res.text).toContain('Scheduled jobs');
     });
@@ -38,6 +39,13 @@ describe('Crontab UI', () => {
       expect(res.status).toBe(200);
       expect(res.headers['content-type']).toContain('text/css');
       expect(res.text).toContain('--primary: #4f46e5');
+    });
+
+    it('should serve the application favicon', async () => {
+      const res = await request(app).get('/favicon.svg');
+      expect(res.status).toBe(200);
+      expect(res.headers['content-type']).toContain('image/svg+xml');
+      expect(res.body.toString()).toContain('fill="#4f46e5"');
     });
   });
 
