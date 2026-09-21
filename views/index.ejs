@@ -31,6 +31,7 @@
 		routes = JSON.parse('<%- routes %>');
 		$("#env_vars").val(`<%- env %>`);
 		initThemeToggle();
+		formatLastRunTimes();
 	});
 </script>
 </head>
@@ -171,6 +172,7 @@
 									<th>Name</th>
 									<th>Command</th>
 									<th>Schedule</th>
+									<th>Last run</th>
 									<th>Modified</th>
 									<th class="text-end">Actions</th>
 								</tr>
@@ -186,7 +188,8 @@
 										crontab.name,
 										crontab.command,
 										crontab.schedule,
-										crontab.human
+										crontab.human,
+										crontab.lastRunAt
 									].filter(Boolean).join(' ').toLocaleLowerCase('zh-CN');
 								%>
 								<tr class="job-row" data-search="<%= searchText %>">
@@ -202,17 +205,28 @@
 											<span class="deploy-state unsaved"><i class="bi bi-exclamation-circle"></i> Pending deploy</span>
 										<% } %>
 									</td>
-									<td><code class="command-code" title="<%= crontab.command %>"><%= crontab.command %></code></td>
+									<td>
+										<button class="command-trigger" type="button" onclick="showCommand('<%= crontab._id %>')" title="View full command">
+											<i class="bi bi-terminal"></i><span>View</span>
+										</button>
+									</td>
 									<td>
 										<span class="schedule-code" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Next: <%= crontab.next %>"><%= crontab.schedule %></span>
 										<span class="schedule-human"><%= crontab.human %></span>
+									</td>
+									<td>
+									<% if (crontab.lastRunAt) { %>
+										<time class="last-run-time" datetime="<%= crontab.lastRunAt %>"><%= dayjs(new Date(crontab.lastRunAt)).format('YYYY-MM-DD HH:mm:ss') %></time>
+									<% } else { %>
+										<span class="last-run-empty">Never</span>
+									<% } %>
 									</td>
 									<td><span class="modified-date" title="<%= crontab.timestamp %>"><%= dayjs(new Date(crontab.timestamp)).fromNow() %></span></td>
 									<td>
 										<div class="action-list">
 										<% if (!crontab.stopped) { %>
 											<% if (crontab.logging && crontab.logging != 'false') { %>
-												<a class="icon-button danger" data-bs-toggle="tooltip" title="Error log" href="<%= JSON.parse(routes).logger + '?id=' + crontab._id %>" target="_blank"><i class="bi bi-exclamation-square"></i></a>
+												<a class="icon-button" data-bs-toggle="tooltip" title="Runtime log" href="<%= JSON.parse(routes).logger + '?id=' + crontab._id %>" target="_blank"><i class="bi bi-journal-text"></i></a>
 												<a class="icon-button" data-bs-toggle="tooltip" title="Output log" href="<%= JSON.parse(routes).stdout + '?id=' + crontab._id %>" target="_blank"><i class="bi bi-terminal"></i></a>
 											<% } %>
 											<button class="icon-button primary" type="button" data-bs-toggle="tooltip" title="Run now" onclick="runJob('<%= crontab._id %>')"><i class="bi bi-play-fill"></i></button>

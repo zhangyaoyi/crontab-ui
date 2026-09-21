@@ -114,9 +114,11 @@ app.post(routes.remove, (req, res) => {
   res.end();
 });
 
-app.post(routes.run, (req, res) => {
-  crontab.runjob(req.body._id);
-  res.end();
+app.post(routes.run, (req, res, next) => {
+  crontab.runjob(req.body._id, (err) => {
+    if (err) next(err);
+    else res.end();
+  });
 });
 
 app.get(routes.crontab, (req, res, next) => {
@@ -194,22 +196,22 @@ app.get(routes.preview_crontab, (req, res) => {
   });
 });
 
-function sendLog(filePath, req, res) {
+function sendLog(filePath, emptyMessage, res) {
   if (fs.existsSync(filePath)) {
     res.type('text/plain');
     res.set('Cache-Control', 'no-store');
     res.sendFile(filePath);
   } else {
-    res.type('text/plain').send('No errors logged yet');
+    res.type('text/plain').send(emptyMessage);
   }
 }
 
 app.get(routes.logger, validateIdParam, (req, res) => {
-  sendLog(path.join(crontab.log_folder, `${req.query.id}.log`), req, res);
+  sendLog(path.join(crontab.log_folder, `${req.query.id}.log`), 'No runtime logs yet', res);
 });
 
 app.get(routes.stdout, validateIdParam, (req, res) => {
-  sendLog(path.join(crontab.log_folder, `${req.query.id}.stdout.log`), req, res);
+  sendLog(path.join(crontab.log_folder, `${req.query.id}.stdout.log`), 'No output logged yet', res);
 });
 
 // error handler

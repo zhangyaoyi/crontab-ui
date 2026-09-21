@@ -15,7 +15,7 @@ Editing the plain text crontab is error prone for managing jobs, e.g., adding jo
 2. Safe adding, deleting or pausing jobs. Easy to maintain hundreds of jobs.
 3. Backup your crontabs.
 4. Export crontab and deploy on other machines without much hassle.
-5. Error log support.
+5. Runtime log support.
 6. Mailing and hooks support.
 
 Read [this](https://lifepluslinux.blogspot.com/2015/06/crontab-ui-easy-and-safe-way-to-manage.html) to see more details.
@@ -84,6 +84,7 @@ Import from existing crontab file automatically.
 ### Backup and restore crontab
 
 Keep backups of your crontab in case you mess up.
+Backup files are stored in `CRON_DB_PATH` using the machine's time zone, for example `crontab-ui-backup-20260917T091149+0800.db`.
 ![backup](https://github.com/alseambusher/crontab-ui/raw/gh-pages/screenshots/backup.png)
 
 ### Export and import crontab on multiple instances of Crontab UI.
@@ -94,7 +95,7 @@ If you want to run the same jobs on multiple machines simply export from one ins
 
 A backup is created automatically before importing.
 
-### Separate error log support for every job
+### Separate runtime log support for every job
 ![logs](https://github.com/alseambusher/crontab-ui/raw/gh-pages/screenshots/log.gif)
 
 ### Donate

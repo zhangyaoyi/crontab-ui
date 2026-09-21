@@ -277,7 +277,7 @@ body.app-body {
 }
 
 .form-control::placeholder { color: var(--text-muted); opacity: 0.75; }
-textarea.form-control, .command-input, .command-preview, .command-code, .schedule-code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+textarea.form-control, .command-input, .command-preview, .schedule-code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
 
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
 .toolbar-group { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -451,15 +451,22 @@ textarea.form-control, .command-input, .command-preview, .command-code, .schedul
 .deploy-state.saved { color: var(--success); }
 .deploy-state.unsaved { color: var(--warning); }
 
-.command-code {
-  display: block;
-  max-width: 400px;
-  overflow: hidden;
-  color: var(--text);
-  font-size: 0.78rem;
-  text-overflow: ellipsis;
+.command-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  color: var(--primary);
+  background: var(--primary-soft);
+  border: 0;
+  border-radius: 7px;
+  font-size: 0.75rem;
+  font-weight: 680;
   white-space: nowrap;
 }
+
+.command-trigger:hover { color: #fff; background: var(--primary); }
+.command-viewer-code { min-height: 120px; max-height: 55vh; overflow: auto; }
 
 .schedule-code {
   display: inline-flex;
@@ -472,7 +479,9 @@ textarea.form-control, .command-input, .command-preview, .command-code, .schedul
   white-space: nowrap;
 }
 
-.schedule-human, .modified-date { display: block; margin-top: 5px; color: var(--text-muted); font-size: 0.72rem; white-space: nowrap; }
+.schedule-human, .modified-date, .last-run-time, .last-run-empty { display: block; margin-top: 5px; color: var(--text-muted); font-size: 0.72rem; white-space: nowrap; }
+.last-run-time { margin-top: 0; color: var(--text); font-variant-numeric: tabular-nums; }
+.last-run-empty { margin-top: 0; font-style: italic; }
 .action-list { display: flex; justify-content: flex-end; gap: 5px; white-space: nowrap; }
 
 .icon-button {
@@ -603,7 +612,6 @@ div.dt-container .dt-paging .dt-paging-button.current:hover {
 .restore-header { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 20px; }
 
 @media (max-width: 900px) {
-  .command-code { max-width: 260px; }
   .schedule-builder { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 

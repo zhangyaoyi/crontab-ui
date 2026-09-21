@@ -104,6 +104,28 @@
   </div>
 </div>
 
+<!-- Command viewer -->
+<div class="modal fade" id="command-viewer-modal" tabindex="-1" aria-labelledby="command-viewer-title" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <div class="eyebrow mb-1">Job command</div>
+          <h2 class="modal-title" id="command-viewer-title">Command</h2>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <pre id="command-viewer-content" class="preview-code command-viewer-code"></pre>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-surface" id="copy-command-button" onclick="copyJobCommand()"><i class="bi bi-clipboard me-1"></i> Copy</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Crontab preview -->
 <div class="modal fade" id="preview-crontab-modal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">

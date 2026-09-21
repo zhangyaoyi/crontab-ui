@@ -55,7 +55,11 @@
 					<tr>
 						<td><% if (!crontab.stopped) { %><span class="status-badge status-active">Active</span><% } else { %><span class="status-badge status-paused">Paused</span><% } %></td>
 						<td><span class="job-name"><%= crontab.name || 'Untitled job' %></span><span class="job-id" title="<%= crontab._id %>"><%= crontab._id %></span></td>
-						<td><code class="command-code" title="<%= crontab.command %>"><%= crontab.command %></code></td>
+						<td>
+							<button class="command-trigger" type="button" onclick="showCommand('<%= crontab._id %>')" title="View full command">
+								<i class="bi bi-terminal"></i><span>View</span>
+							</button>
+						</td>
 						<td><span class="schedule-code"><%= crontab.schedule %></span></td>
 						<td><span class="modified-date"><%= crontab.timestamp %></span></td>
 					</tr>

@@ -29,6 +29,18 @@ function initThemeToggle() {
   });
 }
 
+function formatLastRunTimes() {
+  document.querySelectorAll('.last-run-time').forEach(function(element) {
+    var date = new Date(element.getAttribute('datetime'));
+    if (Number.isNaN(date.getTime())) {
+      element.textContent = 'Unknown';
+      return;
+    }
+    element.textContent = date.toLocaleString();
+    element.title = date.toString();
+  });
+}
+
 function filterJobTables(value) {
   var query = String(value || '').trim().toLocaleLowerCase();
   var visibleTotal = 0;
@@ -54,6 +66,27 @@ function filterJobTables(value) {
   if (empty) empty.hidden = visibleTotal !== 0;
 }
 
+function showCommand(_id) {
+  var job = crontabs.find(function(crontab) { return crontab._id === _id; });
+  if (!job) return;
+
+  document.getElementById('command-viewer-title').textContent = job.name || 'Untitled job';
+  document.getElementById('command-viewer-content').textContent = job.command || '';
+  document.getElementById('copy-command-button').innerHTML = '<i class="bi bi-clipboard me-1"></i> Copy';
+  getModal('command-viewer-modal').show();
+}
+
+function copyJobCommand() {
+  var text = document.getElementById('command-viewer-content').textContent;
+  navigator.clipboard.writeText(text).then(function() {
+    var button = document.getElementById('copy-command-button');
+    button.innerHTML = '<i class="bi bi-check2 me-1"></i> Copied';
+    setTimeout(function() {
+      button.innerHTML = '<i class="bi bi-clipboard me-1"></i> Copy';
+    }, 2000);
+  });
+}
+
 function infoMessageBox(message, title) {
   document.getElementById('info-body').innerHTML = message;
   document.getElementById('info-title').innerHTML = title;
@@ -63,7 +96,7 @@ function infoMessageBox(message, title) {
 function errorMessageBox(message) {
   var msg =
     'Operation failed: ' + message + '. ' +
-    'Please see error log for details.';
+    'Please see the runtime log for details.';
   infoMessageBox(msg, 'Error');
 }
 

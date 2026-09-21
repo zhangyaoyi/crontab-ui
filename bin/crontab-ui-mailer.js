@@ -58,7 +58,7 @@ crontab.get_crontab(jobId, (job) => {
 
   mailOptions.attachments = [
     { filename: 'stdout.txt', path: stdoutPath },
-    { filename: 'stderr.txt', path: stderrPath },
+    { filename: 'runtime.log', path: stderrPath },
   ];
 
   transporter.sendMail(mailOptions, (error, info) => {

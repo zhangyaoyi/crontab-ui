@@ -71,6 +71,24 @@ describe('Crontab UI', () => {
       expect(res.text).toContain('echo hello');
       expect(res.text).toContain('data-category="Test jobs"');
       expect(res.text).toContain('class="table job-table"');
+      expect(res.text).toContain('class="command-trigger"');
+      expect(res.text).toContain('id="command-viewer-modal"');
+      expect(res.text).toContain('<th>Last run</th>');
+      expect(res.text).toContain('class="last-run-empty">Never</span>');
+    });
+  });
+
+  describe('POST /runjob', () => {
+    it('should record and render the latest run time', async () => {
+      const page = await request(app).get('/');
+      const match = page.text.match(/runJob\('([^']+)'\)/);
+      expect(match).not.toBeNull();
+
+      const res = await request(app).post('/runjob').send({ _id: match[1] });
+      expect(res.status).toBe(200);
+
+      const updatedPage = await request(app).get('/');
+      expect(updatedPage.text).toMatch(/class="last-run-time" datetime="\d{4}-\d{2}-\d{2}T[^\"]+Z"/);
     });
   });
 
@@ -104,6 +122,9 @@ describe('Crontab UI', () => {
     it('should create a backup', async () => {
       const res = await request(app).get('/backup');
       expect(res.status).toBe(200);
+      const backups = fs.readdirSync(testDbPath)
+        .filter((file) => /^crontab-ui-backup-\d{8}T\d{6}[+-]\d{4}\.db$/.test(file));
+      expect(backups.length).toBeGreaterThan(0);
     });
   });
 
@@ -228,10 +249,10 @@ describe('Crontab UI', () => {
   });
 
   describe('GET /logger', () => {
-    it('should return no errors message when no log exists', async () => {
+    it('should return no runtime logs message when no log exists', async () => {
       const res = await request(app).get('/logger?id=nonexistent');
       expect(res.status).toBe(200);
-      expect(res.text).toContain('No errors logged yet');
+      expect(res.text).toContain('No runtime logs yet');
     });
 
     it('should return text/plain content type when no log exists', async () => {
@@ -252,10 +273,10 @@ describe('Crontab UI', () => {
   });
 
   describe('GET /stdout', () => {
-    it('should return no errors message when no log exists', async () => {
+    it('should return no output message when no log exists', async () => {
       const res = await request(app).get('/stdout?id=nonexistent');
       expect(res.status).toBe(200);
-      expect(res.text).toContain('No errors logged yet');
+      expect(res.text).toContain('No output logged yet');
     });
 
     it('should return text/plain content type when no log exists', async () => {
@@ -285,10 +306,10 @@ describe('Crontab UI', () => {
       // small delay so backup filename (based on date) doesn't collide
       await new Promise((r) => setTimeout(r, 1100));
       const backupsBefore = fs.readdirSync(testDbPath)
-        .filter((f) => f.startsWith('backup'));
+        .filter((f) => f.startsWith('crontab-ui-backup-'));
       await request(app).get('/import_crontab');
       const backupsAfter = fs.readdirSync(testDbPath)
-        .filter((f) => f.startsWith('backup'));
+        .filter((f) => f.startsWith('crontab-ui-backup-'));
       expect(backupsAfter.length).toBe(backupsBefore.length + 1);
     });
   });
@@ -298,13 +319,13 @@ describe('Crontab UI', () => {
       // small delay so backup filename (based on date) doesn't collide
       await new Promise((r) => setTimeout(r, 1100));
       const backupsBefore = fs.readdirSync(testDbPath)
-        .filter((f) => f.startsWith('backup'));
+        .filter((f) => f.startsWith('crontab-ui-backup-'));
       const dbContent = fs.readFileSync(path.join(testDbPath, 'crontab.db'));
       await request(app)
         .post('/import')
         .attach('file', dbContent, 'crontab.db');
       const backupsAfter = fs.readdirSync(testDbPath)
-        .filter((f) => f.startsWith('backup'));
+        .filter((f) => f.startsWith('crontab-ui-backup-'));
       expect(backupsAfter.length).toBe(backupsBefore.length + 1);
     });
   });
